@@ -1,39 +1,46 @@
 import os
 import zipfile
 import cherrypy
+import os
 
-class ZipApp:
-    def __init__(self):
-        self.zip_folder()  # Zip the folder when the application starts
 
-    def zip_folder(self):
-        folder_to_zip = 'mods'  # The folder you want to zip
-        zip_filename = 'mods.zip'
 
-        # Create a Zip file
-        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for root, _, files in os.walk(folder_to_zip):
-                for file in files:
-                    zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_to_zip))
+# Function to zip the folder
+def zip_folder(folder_path, output_path):
+    with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                relative_path = os.path.relpath(full_path, folder_path)
+                zipf.write(full_path, relative_path)
 
+class StaticServer:
     @cherrypy.expose
     def index(self):
-        return open("index.html")
-
-    @cherrypy.expose
-    def download(self):
-        zip_filename = 'zipped_folder.zip'
-
-        # Return the zip file for download
-        cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
-        return open(zip_filename, 'rb')
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        index_path = os.path.join(script_dir, 'static', 'index.html')
+        with open(index_path, 'r') as f:
+            return f.read()
 
 if __name__ == '__main__':
-    cherrypy.config.update({
-        'server.socket_host': '0.0.0.0',  # Bind to all available network interfaces
-        'server.socket_port': 90,
-        'log.screen': True,
-    })
-    cherrypy.quickstart(ZipApp(), '/', {'/': {'tools.sessions.on': True}})
-    cherrypy.engine.socket_server.bind(('0.0.0.0', 90))
+    # Paths
+    folder_to_zip = 'mods'
+    output_zip = 'static/zipped_mods.zip'
+
+    # Ensure the static directory exists
+    if not os.path.exists('static'):
+        os.makedirs('static')
+
+    # Zip the folder
+    zip_folder(folder_to_zip, output_zip)
+
+    # Configure CherryPy static directory
+    config = {
+        '/': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': os.path.abspath('static')
+        }
+    }
+
+    # Start the CherryPy server
+    cherrypy.quickstart(StaticServer(), '/', config)

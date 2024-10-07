@@ -1,9 +1,6 @@
 import os
 import zipfile
 import cherrypy
-import os
-
-
 
 # Function to zip the folder
 def zip_folder(folder_path, output_path):
@@ -41,6 +38,12 @@ if __name__ == '__main__':
             'tools.staticdir.dir': os.path.abspath('static')
         }
     }
+
+    # Update CherryPy server configuration
+    cherrypy.config.update({
+        'server.socket_host': '0.0.0.0',
+        'server.socket_port': 90,
+    })
 
     # Start the CherryPy server
     cherrypy.quickstart(StaticServer(), '/', config)

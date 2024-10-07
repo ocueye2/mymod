@@ -25,7 +25,7 @@ class StaticServer:
 if __name__ == '__main__':
     # Paths
     folder_to_zip = 'mods'
-    output_zip = 'static/zipped_mods.zip'
+    output_zip = 'static/mods.zip'
 
     # Ensure the static directory exists
     if not os.path.exists('static'):

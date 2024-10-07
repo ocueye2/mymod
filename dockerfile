@@ -13,7 +13,7 @@ RUN pip install cherrypy
 COPY . .
 
 # Make port 8080 available to the world outside this container
-EXPOSE 8080
+EXPOSE 90
 
 # Run app.py when the container launches
 CMD ["python", "app.py"]
